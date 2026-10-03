@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI Product Hunter</title>
+<style>
+:root{--bg:#eef3f1;--card:#fff;--ink:#12302b;--mut:#5b716c;--line:#d3dfdb;--acc:#0f6b5c;--hi:#e0a21b;--bad:#b4442f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b18;--card:#162824;--ink:#e6f1ee;--mut:#93aaa4;--line:#27403a;--acc:#4cc2ac;--hi:#f0b93a;--bad:#e5806c}}
+:root[data-theme="dark"]{--bg:#0e1b18;--card:#162824;--ink:#e6f1ee;--mut:#93aaa4;--line:#27403a;--acc:#4cc2ac;--hi:#f0b93a;--bad:#e5806c}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.1rem;margin:20px 0 8px}
+.sub{color:var(--mut);font-size:.88rem;margin:2px 0 14px}
+.note{background:var(--card);border-left:4px solid var(--hi);padding:8px 12px;font-size:.82rem;color:var(--mut);border-radius:6px;margin-bottom:14px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+label{display:block;font-size:.8rem;color:var(--mut);margin-bottom:3px}
+input,select,button{font:inherit;color:var(--ink)}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+button{border:0;border-radius:8px;padding:11px 14px;background:var(--acc);color:#fff;font-weight:600;cursor:pointer}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) button{color:#06201b}}
+button.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+button.full{width:100%;margin-top:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;gap:10px}
+.name{font-weight:650}.meta{color:var(--mut);font-size:.85rem;margin-top:4px}
+.score{min-width:58px;text-align:center;border-radius:10px;padding:6px 4px;border:2px solid var(--hi);font-weight:800;font-size:1.3rem;line-height:1}
+.score small{display:block;font-size:.6rem;font-weight:500;color:var(--mut);margin-top:3px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.acts button{padding:8px 12px;font-size:.88rem}
+.sig{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.sig div{margin-bottom:8px;font-size:.85rem}.bar{height:6px;background:var(--line);border-radius:3px;margin:3px 0;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc)}
+.sig span{color:var(--mut)}
+.out{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:10px;font-size:.88rem;margin-top:10px}
+a{color:var(--acc)}.empty{color:var(--mut);text-align:center;padding:14px}
+.disc{font-size:.75rem;color:var(--mut);margin:20px 0 8px}
+.badge{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-weight:800;letter-spacing:.04em;margin-bottom:12px}
+.badge small{font-weight:500;letter-spacing:0;font-size:.75rem;text-align:right}
+.badge.demo{background:var(--hi);color:#2a1d00}.badge.api{background:var(--acc);color:#fff}
+.chip{font-size:.65rem;font-weight:700;background:var(--hi);color:#2a1d00;border-radius:4px;padding:1px 5px;margin-left:6px}
+.thumb{width:64px;height:64px;object-fit:contain;border-radius:8px;background:#fff;flex:none}
+.err{color:var(--bad);font-size:.88rem;margin-top:8px}.na{color:var(--mut);font-style:italic}
+details{margin-bottom:12px}summary{cursor:pointer;font-weight:600;padding:6px 0}
+</style></head><body><main>
+<h1>AI Product Hunter</h1>
+<p class="sub">Amazon US affiliate product research</p>
+<div class="badge demo" id="badge"></div>
+<div class="note" id="srcnote"></div>
+
+<details><summary>Data source and API settings</summary><div class="panel">
+<label for="mode">Data source</label>
+<select id="mode"><option value="demo">Demo data (fake sample products)</option><option value="api">Amazon API (via your backend)</option></select>
+<label for="be" style="margin-top:10px">Backend URL (public address only)</label>
+<input id="be" placeholder="https://aph-backend.yourname.workers.dev">
+<div class="acts"><button class="ghost" id="saveBe">Save URL</button><button class="ghost" id="test">Test connection</button></div>
+<div class="meta" id="beMsg"></div>
+<p class="meta">Never paste your Credential ID or Secret here. They live only in your backend's secret settings.</p>
+</div></details>
+
+<div class="panel">
+<label for="q">Niche or category</label>
+<input id="q" placeholder="e.g. kitchen gadgets, dog toys, desk lamp">
+<div class="row">
+<div><label for="pmin">Min price ($)</label><input id="pmin" type="number" inputmode="decimal" value="0"></div>
+<div><label for="pmax">Max price ($)</label><input id="pmax" type="number" inputmode="decimal" value="100"></div>
+<div><label for="rmin">Min rating</label><select id="rmin"><option value="0">Any</option><option>3.5</option><option>4</option><option selected>4.2</option><option>4.5</option></select></div>
+<div><label for="cmin">Min reviews</label><input id="cmin" type="number" inputmode="numeric" value="100"></div>
+</div>
+<div class="meta" id="filtnote"></div>
+<label style="margin-top:10px">Marketplace</label><select disabled><option>Amazon US (amazon.com)</option></select>
+<button class="full" id="go">Search products</button>
+<div class="err" id="err"></div>
+</div>
+
+<h2>Results</h2><div id="res"></div>
+<h2>Shortlist</h2><div id="short"></div>
+<p class="disc">Scores are research/opportunity scores based on limited signals. They are not predictions and no product is guaranteed to sell or earn commission. As an Amazon Associate you may earn from qualifying purchases; add your own disclosure to any content you publish. Prices change, so confirm on Amazon before posting.</p>
+</main>
+<script>
+/* ===== LAYER 1: DATA SOURCES (no scoring in here) =====
+   Product shape: asin,name,price,currency,rating,reviews,category,imageUrl,productUrl
+   (+ optional salesRank, source). Missing values are null, never invented. */
+const num=v=>(v===null||v===undefined||v===""||isNaN(+v))?null:+v;
+const ls=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+
+/* --- DEMO DATA: invented items, not real Amazon listings --- */
+const DEMO=[
+["Collapsible Silicone Food Storage Set",24.99,4.6,3120,"Kitchen",8,"small-space cooks"],
+["Electric Milk Frother Handheld Wand",12.95,4.4,18450,"Kitchen",7,"coffee lovers"],
+["Adjustable Resistance Bands Set",19.99,4.5,9210,"Fitness",7,"home workouts"],
+["Mini Massage Gun for Travel",39.99,4.3,1480,"Fitness",8,"gym-goers"],
+["Self-Cleaning Pet Hair Remover Roller",15.99,4.5,27800,"Pets",9,"pet owners"],
+["Slow Feeder Dog Bowl",11.49,4.6,640,"Pets",6,"dog owners"],
+["Under-Desk Cable Management Tray",21.99,4.4,2260,"Desk",7,"WFH setups"],
+["LED Monitor Light Bar",44.99,4.5,5380,"Desk",8,"late-night workers"],
+["Portable Blender Personal Size",29.99,4.1,42100,"Kitchen",8,"smoothie fans"],
+["Posture Corrector Back Brace",18.99,3.9,210,"Fitness",5,"desk workers"],
+["Hydrating Hyaluronic Acid Face Serum",18.99,4.5,6420,"Beauty",7,"dry-skin skincare fans"],
+["Gentle Foaming Face Cleanser",12.49,4.6,8310,"Beauty",6,"daily skincare routines"],
+["Vitamin C Brightening Face Cream",24.99,4.4,2150,"Beauty",7,"skincare beginners"],
+["Overnight Lip Sleeping Mask",8.99,4.7,9100,"Beauty",8,"lip care lovers"],
+["Hydrogel Under-Eye Patches",14.99,4.3,4870,"Beauty",8,"tired-eyes skincare fans"],
+["Makeup Brush Set 12 Piece",15.99,4.6,7240,"Beauty",8,"makeup beginners"],
+["Beauty Sponge Blender Set",7.99,4.5,9800,"Beauty",9,"foundation users"],
+["Eyelash Curler with Silicone Pads",6.99,4.4,3650,"Beauty",7,"everyday makeup wearers"],
+["Makeup Brush Cleaning Mat",9.49,4.3,720,"Beauty",8,"brush-care fans"],
+["Lighted Travel Makeup Mirror",21.99,4.6,2980,"Beauty",7,"travelers and commuters"],
+["Satin Scrunchie Set",8.49,4.7,5120,"Beauty",7,"hair-care minded shoppers"],
+["Spiral Hair Ties Pack",6.99,4.6,8740,"Beauty",6,"active hair-wearers"],
+["Matte Claw Hair Clip Set",9.99,4.5,3320,"Beauty",8,"quick-style hair fans"],
+["Silk Sleep Bonnet",11.99,4.4,1890,"Beauty",6,"curly-hair care fans"],
+["Microfiber Hair Towel Wrap",13.99,4.6,4210,"Beauty",7,"long-hair owners"],
+["Facial Ice Roller",11.99,4.4,2540,"Beauty",9,"morning-routine fans"],
+["Jade Gua Sha Facial Tool",13.99,4.5,6130,"Beauty",9,"facial massage fans"],
+["Handheld Facial Steamer",27.99,4.3,830,"Beauty",8,"at-home spa fans"],
+["Electric Eyebrow Trimmer Pen",9.99,4.4,5560,"Beauty",8,"quick-grooming shoppers"],
+["Mini Portable Hair Straightener",29.99,4.2,310,"Beauty",8,"travel-bag packers"]
+].map((d,i)=>({asin:"DEMO-"+String(i+1).padStart(2,"0"),name:d[0],price:d[1],currency:"USD",rating:d[2],reviews:d[3],category:d[4],imageUrl:null,productUrl:null,salesRank:null,visual:d[5],fit:d[6],source:"demo"}));
+async function getDemoProducts(query,f){
+  const t=query.trim().toLowerCase();
+  return DEMO.filter(p=>(!t||(p.name+" "+p.category).toLowerCase().includes(t))&&p.price>=f.pmin&&p.price<=f.pmax&&p.rating>=f.rmin&&p.reviews>=f.cmin);
+}
+
+/* --- REAL DATA: Frontend -> your backend -> Amazon Creators API ---
+   The backend holds the secrets. The browser only knows the backend's public URL. */
+const normalize=x=>({asin:String(x.asin||""),name:x.name||"(untitled)",price:num(x.price),currency:x.currency||"USD",rating:num(x.rating),reviews:num(x.reviews),category:x.category||"Uncategorized",imageUrl:/^https:\/\//.test(x.imageUrl||"")?x.imageUrl:null,productUrl:/^https:\/\//.test(x.productUrl||"")?x.productUrl:null,salesRank:num(x.salesRank),source:"api"});
+async function getProductsFromAPI(query,f){
+  const base=(ls("aph_backend")||"").trim().replace(/\/$/,"");
+  if(!base)throw new Error("Add your backend URL under Data source and API settings.");
+  if(!query.trim())throw new Error("Enter a niche or keyword to search Amazon.");
+  const u=new URL(base+"/search");
+  u.searchParams.set("q",query.trim());
+  if(f.pmin>0)u.searchParams.set("minPrice",f.pmin);
+  if(f.pmax<1e9)u.searchParams.set("maxPrice",f.pmax);
+  if(f.rmin>0)u.searchParams.set("minRating",f.rmin);
+  const r=await fetch(u);
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||("Backend returned "+r.status));
+  return (d.products||[]).map(normalize);
+}
+
+/* ===== LAYER 2: SCORING ENGINE (knows nothing about where data came from) ===== */
+const clamp=n=>Math.max(0,Math.min(100,Math.round(n)));
+const COMM={Kitchen:4,Fitness:4,Pets:4,Desk:3}; /* illustrative only; check Amazon's current fee table */
+const W={demand:.2,comp:.15,price:.15,rate:.2,content:.15,aff:.15};
+const L=(v,a,b,c)=>v>=75?a:v>=45?b:c;
+function analyze(p){
+  const na="Not provided by the data source, so it is left out of the score.";
+  let demand=null,dt=na;
+  if(p.salesRank){demand=clamp(100-(Math.log10(p.salesRank)-2)*25);dt=L(demand,"Strong sales rank (#"+p.salesRank.toLocaleString()+").","Moderate sales rank (#"+p.salesRank.toLocaleString()+").","Weak sales rank (#"+p.salesRank.toLocaleString()+").")}
+  else if(p.reviews){demand=clamp((Math.log10(p.reviews)-1.5)*40);dt=L(demand,"Strong review volume suggests steady interest.","Moderate review volume; interest looks real but not huge.","Few reviews; demand is unproven.")}
+  const comp=p.reviews?clamp(100-(Math.log10(p.reviews)-2)*28):null;
+  const price=p.price!=null?clamp(100-Math.abs(p.price-35)*2.6):null;
+  const rate=p.rating?clamp((p.rating-3.5)*66):null;
+  const content=p.visual?p.visual*10:clamp(45+(p.imageUrl?10:0)+(p.price>=10&&p.price<=60?10:0));
+  const aff=p.price!=null?clamp(((COMM[p.category]||3)*p.price)*4.2):null;
+  const R=[
+   {k:"demand",n:"Demand signals",v:demand,t:dt},
+   {k:"comp",n:"Competition signals",v:comp,t:comp==null?na:L(comp,"Fewer reviews hint at a less crowded listing.","Moderately established; expect competing creators.","Very established listing; likely crowded.")},
+   {k:"price",n:"Price",v:price,t:price==null?na:L(price,"Price sits in an easy impulse-buy range.","Price is workable but not a sweet spot.","Price may slow impulse purchases.")},
+   {k:"rate",n:"Rating/review signals",v:rate,t:rate==null?"Amazon's API does not return ratings or review counts. Check them on the product page.":L(rate,"Rating is solid at this volume.","Rating is okay; read the negative reviews first.","Rating is weak; returns risk is higher.")},
+   {k:"content",n:"Content potential",v:content,t:(p.visual?"":"Rough estimate only. ")+L(content,"Looks easy to show in a short demo video.","Can be filmed, needs a creative angle.","Hard to make visual or exciting.")},
+   {k:"aff",n:"Affiliate potential",v:aff,t:aff==null?na:L(aff,"Price and category could give decent commission per sale.","Commission per sale looks average.","Low commission per sale likely; verify rates.")}
+  ];
+  const use=R.filter(x=>x.v!=null),tw=use.reduce((s,x)=>s+W[x.k],0);
+  const score=use.length?clamp(use.reduce((s,x)=>s+x.v*W[x.k],0)/tw):0;
+  return {score,R,used:use.length};
+}
+const rank=s=>s>=75?"Worth a closer look":s>=55?"Mixed, research more":"Weak signals";
+
+/* ===== LAYER 3: CONTENT TEMPLATES ===== */
+const money=p=>p.price==null?"price unknown":(p.currency==="USD"?"$":p.currency+" ")+p.price.toFixed(2);
+function gen(p){
+  const fit=p.fit||"shoppers looking for "+(p.category||"this").toLowerCase()+" products";
+  const short=p.name.split(" ").slice(0,4).join(" ");
+  const s=p.name.length%3;
+  const hook=[`Stop scrolling if you're one of the ${fit}.`,`Here's an honest look at the ${short}.`,`Is the ${short} worth ${money(p)}? Quick take.`][s];
+  const idea=`0-3s: Show the problem on camera.\n3-10s: Reveal the ${short}.\n10-22s: Real use, 2 close-up shots.\n22-27s: One honest pro and one limitation.\n27-30s: "Link in bio" plus affiliate disclosure on screen.`;
+  const cap=`Took a look at this for ${fit}. Around ${money(p)} when I checked. Worth it depends on your setup, so read the reviews first. (Affiliate link, I may earn a commission.)`;
+  const tag=["#"+(p.category||"finds").toLowerCase().replace(/[^a-z]/g,""),"#amazonfinds","#productreview","#shorts","#reels","#ad"].join(" ");
+  return `HOOK\n${hook}\n\n30-SECOND IDEA\n${idea}\n\nCAPTION\n${cap}\n\nHASHTAGS\n${tag}`;
+}
+
+/* ===== UI ===== */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let mode="demo",results=[],short=[],open={};
+try{short=JSON.parse(ls("aph_short2")||"[]")}catch(e){}
+const save=()=>lsSet("aph_short2",JSON.stringify(short));
+
+function setMode(m){
+  mode=m;results=[];$("mode").value=m;$("err").textContent="";
+  const b=$("badge");b.className="badge "+(m==="api"?"api":"demo");
+  b.innerHTML=m==="api"?"<span>AMAZON API</span><small>Live data via your backend</small>":"<span>DEMO DATA</span><small>Fake sample products</small>";
+  $("srcnote").textContent=m==="api"?"Live Amazon US results. Ratings and review counts are not returned by the API, so those signals are skipped and the Min reviews filter is off.":"These products are invented samples for testing the interface. They are not real Amazon listings.";
+  $("cmin").disabled=m==="api";
+  $("filtnote").textContent=m==="api"?"Price and rating filters are applied by Amazon's search. Rating is rounded down to a whole star.":"";
+  render();
+}
+function pcard(p){
+  const a=analyze(p),o=open[p.asin]||{},inS=short.some(s=>s.asin===p.asin);
+  const meta=[money(p),p.rating?p.rating+" ★":null,p.reviews?p.reviews.toLocaleString()+" reviews":null,p.category].filter(Boolean).join(" · ");
+  return `<div class="card" data-id="${esc(p.asin)}">
+  <div class="top">${p.imageUrl?`<img class="thumb" src="${esc(p.imageUrl)}" alt="" loading="lazy">`:""}
+  <div style="flex:1;min-width:0"><div class="name">${esc(p.name)}${p.source==="demo"?'<span class="chip">DEMO</span>':""}</div>
+  <div class="meta">${esc(meta)}</div>
+  <div class="meta">${p.productUrl?`<a href="${esc(p.productUrl)}" target="_blank" rel="noopener nofollow sponsored">View on Amazon</a> · ASIN ${esc(p.asin)}`:"Demo item, no real listing"}</div></div>
+  <div class="score">${a.score}<small>research score</small></div></div>
+  <div class="meta"><b>${rank(a.score)}</b> · based on ${a.used} of 6 signals</div>
+  <div class="acts"><button class="ghost" data-a="an">${o.an?"Hide":"Show"} research report</button>
+  <button class="ghost" data-a="sl">${inS?"Remove":"Add to shortlist"}</button>
+  <button data-a="gen">Generate content</button></div>
+  ${o.an?`<div class="sig">${a.R.map(s=>`<div><b>${s.n}</b> ${s.v==null?'<span class="na">n/a</span>':s.v+"/100"}<div class="bar"><i style="width:${s.v||0}%"></i></div><span>${esc(s.t)}</span></div>`).join("")}<div class="meta">Research score ${a.score}/100 is a weighted average of the signals above. It is an opportunity score for research, not a sales prediction.</div></div>`:""}
+  ${o.gen?`<div class="out">${esc(gen(p))}</div><div class="acts"><button class="ghost" data-a="cp">Copy text</button></div>`:""}
+  </div>`;
+}
+function render(){
+  $("res").innerHTML=results.length?results.map(pcard).join(""):'<div class="empty">No results yet. Search a niche, or relax the filters.</div>';
+  $("short").innerHTML=short.length?short.map(pcard).join(""):'<div class="empty">Nothing saved yet. Add products to compare them later.</div>';
+}
+async function search(){
+  const f={pmin:+$("pmin").value||0,pmax:+$("pmax").value||1e9,rmin:+$("rmin").value,cmin:+$("cmin").value||0};
+  $("err").textContent="";$("go").disabled=true;
+  try{
+    results=await (mode==="api"?getProductsFromAPI:getDemoProducts)($("q").value,f);
+    results.sort((a,b)=>analyze(b).score-analyze(a).score);
+  }catch(e){results=[];$("err").textContent=e.message||"Search failed."}
+  $("go").disabled=false;render();
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;
+  const id=b.closest(".card").dataset.id,p=[...results,...short].find(x=>x.asin===id),a=b.dataset.a;
+  if(!p)return;open[id]=open[id]||{};
+  if(a==="an")open[id].an=!open[id].an;
+  if(a==="gen")open[id].gen=!open[id].gen;
+  if(a==="sl"){short=short.some(s=>s.asin===id)?short.filter(s=>s.asin!==id):[...short,p];save()}
+  if(a==="cp"){navigator.clipboard&&navigator.clipboard.writeText(gen(p)).then(()=>{b.textContent="Copied"})}
+  if(a!=="cp")render();
+});
+$("go").onclick=search;
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
+$("mode").onchange=e=>{lsSet("aph_mode",e.target.value);setMode(e.target.value)};
+$("be").value=ls("aph_backend")||"";
+$("saveBe").onclick=()=>{lsSet("aph_backend",$("be").value.trim());$("beMsg").textContent="Saved."};
+$("test").onclick=async()=>{
+  const base=$("be").value.trim().replace(/\/$/,"");lsSet("aph_backend",base);
+  $("beMsg").textContent="Testing...";
+  try{const r=await fetch(base+"/health");const d=await r.json();
+    $("beMsg").textContent=d.configured?"Backend reachable and credentials are set.":"Backend reachable, but secrets are missing: "+(d.missing||[]).join(", ")}
+  catch(e){$("beMsg").textContent="Cannot reach backend. Check the URL and ALLOWED_ORIGIN."}
+};
+setMode(ls("aph_mode")==="api"?"api":"demo");
+</script></body></html>
