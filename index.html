@@ -2,7 +2,15 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>AI Product Hunter</title>
-<style>
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.brand-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#0f6b5c,#18a889);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900}
+.brand h1{font-size:1.55rem;margin:0;font-weight:800}
+.hero-text{background:linear-gradient(135deg,#0f6b5c,#164e45);color:#fff;border-radius:18px;padding:18px;margin:16px 0;box-shadow:0 10px 25px rgba(15,107,92,.18)}
+.hero-text span{font-size:.68rem;font-weight:800;letter-spacing:.08em}
+.hero-text h2{font-size:1.35rem;margin:6px 0}
+.hero-text p{margin:0;font-size:.88rem;opacity:.9}
+.card{box-shadow:0 5px 18px rgba(18,48,43,.06)}
+   <style>
 :root{--bg:#eef3f1;--card:#fff;--ink:#12302b;--mut:#5b716c;--line:#d3dfdb;--acc:#0f6b5c;--hi:#e0a21b;--bad:#b4442f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b18;--card:#162824;--ink:#e6f1ee;--mut:#93aaa4;--line:#27403a;--acc:#4cc2ac;--hi:#f0b93a;--bad:#e5806c}}
 :root[data-theme="dark"]{--bg:#0e1b18;--card:#162824;--ink:#e6f1ee;--mut:#93aaa4;--line:#27403a;--acc:#4cc2ac;--hi:#f0b93a;--bad:#e5806c}
@@ -42,10 +50,21 @@ a{color:var(--acc)}.empty{color:var(--mut);text-align:center;padding:14px}
 .err{color:var(--bad);font-size:.88rem;margin-top:8px}.na{color:var(--mut);font-style:italic}
 details{margin-bottom:12px}summary{cursor:pointer;font-weight:600;padding:6px 0}
 </style></head><body><main>
-<h1>AI Product Hunter</h1>
+<div class="brand">
+  <div class="brand-icon">✦</div>
+  <div>
+    <h1>GlowFinds USA</h1>
+    <p class="sub">AI-powered Amazon US Product Hunter</p>
+  </div>
+</div>
 <p class="sub">Amazon US affiliate product research</p>
 <div class="badge demo" id="badge"></div>
 <div class="note" id="srcnote"></div>
+   <div class="hero-text">
+  <span>🇺🇸 USA SHOPPING PICKS</span>
+  <h2>Find products worth sharing</h2>
+  <p>Discover affordable Amazon US products with AI-powered research, ratings and opportunity scores.</p>
+</div>
 
 <details><summary>Data source and API settings</summary><div class="panel">
 <label for="mode">Data source</label>
